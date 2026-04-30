@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #f7faf7;
+}
+
+.dark body {
+  background: #0f172a;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.9);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-pop {
+  animation: pop 220ms ease-out;
+}
+
+.calendar-cell {
+  transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.calendar-cell:hover {
+  transform: translateY(-1px);
+}
