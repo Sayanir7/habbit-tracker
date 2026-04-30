@@ -5,6 +5,8 @@ import trackerRoutes from "./routes/tracker.routes.js";
 import habitRoutes from "./routes/habit.routes.js";
 import taskRoutes from "./routes/task.routes.js";
 import noteRoutes from "./routes/note.routes.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const allowedOrigins = [
   process.env.CLIENT_ORIGIN,

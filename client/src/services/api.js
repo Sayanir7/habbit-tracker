@@ -21,15 +21,15 @@ const request = async (path, options = {}) => {
 };
 
 export const api = {
-  login: (payload) => request("/auth/login", { method: "POST", body: JSON.stringify(payload) }),
-  signup: (payload) => request("/auth/signup", { method: "POST", body: JSON.stringify(payload) }),
-  me: () => request("/auth/me"),
-  tracker: () => request("/tracker"),
-  createHabit: (payload) => request("/habits", { method: "POST", body: JSON.stringify(payload) }),
-  updateHabit: (id, payload) => request(`/habits/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
-  deleteHabit: (id) => request(`/habits/${id}`, { method: "DELETE" }),
-  createTask: (payload) => request("/tasks", { method: "POST", body: JSON.stringify(payload) }),
-  updateTask: (id, payload) => request(`/tasks/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
-  deleteTask: (id) => request(`/tasks/${id}`, { method: "DELETE" }),
-  upsertNote: (date, body) => request(`/notes/${date}`, { method: "PUT", body: JSON.stringify({ body }) })
+  login: (payload) => request("/api/auth/login", { method: "POST", body: JSON.stringify(payload) }),
+  signup: (payload) => request("/api/auth/signup", { method: "POST", body: JSON.stringify(payload) }),
+  me: () => request("/api/auth/me"),
+  tracker: () => request("/api/tracker"),
+  createHabit: (payload) => request("/api/habits", { method: "POST", body: JSON.stringify(payload) }),
+  updateHabit: (id, payload) => request(`/api/habits/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  deleteHabit: (id) => request(`/api/habits/${id}`, { method: "DELETE" }),
+  createTask: (payload) => request("/api/tasks", { method: "POST", body: JSON.stringify(payload) }),
+  updateTask: (id, payload) => request(`/api/tasks/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  deleteTask: (id) => request(`/api/tasks/${id}`, { method: "DELETE" }),
+  upsertNote: (date, body) => request(`/api/notes/${date}`, { method: "PUT", body: JSON.stringify({ body }) })
 };
