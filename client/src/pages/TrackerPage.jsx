@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { AuthModal } from "../components/auth/AuthModal.jsx";
 import { DashboardSummary } from "../components/dashboard/DashboardSummary.jsx";
-import { WeeklyOverview } from "../components/dashboard/WeeklyOverview.jsx";
 import { AiSuggestions } from "../components/gamification/AiSuggestions.jsx";
 import { BadgesPanel, InsightsPanel } from "../components/gamification/BadgesPanel.jsx";
 import { HabitTracker } from "../components/habits/HabitTracker.jsx";
@@ -12,7 +11,7 @@ import { CalendarHeatmap } from "../components/visualization/CalendarHeatmap.jsx
 import { ProgressChart } from "../components/visualization/ProgressChart.jsx";
 import { useTracker } from "../hooks/useTracker.js";
 import { addDays, formatKey, getMonthDays } from "../utils/date.js";
-import { getAchievements, getDayCompletion, getHabitStats, getLevel, getTotalXp, percentage } from "../utils/stats.js";
+import { getAchievements, getDayCompletion, getHabitStats } from "../utils/stats.js";
 
 const REMINDERS_KEY = "habit-quest-reminders-enabled";
 const LAST_REMINDER_KEY = "habit-quest-last-reminder-date";
@@ -68,12 +67,6 @@ export function TrackerPage() {
     [state]
   );
 
-  const xp = getTotalXp(state);
-  const { level, levelProgress } = getLevel(xp);
-  const monthAverage = percentage(
-    monthDays.reduce((sum, date) => sum + getDayCompletion(state, formatKey(date)), 0),
-    monthDays.length * 100
-  );
   const bestHabit = [...state.habits]
     .map((habit) => ({ ...habit, ...getHabitStats(habit) }))
     .sort((a, b) => b.completion - a.completion)[0];
@@ -163,15 +156,18 @@ export function TrackerPage() {
           </div>
         ) : (
           <>
-            <section className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+            <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
               <DashboardSummary
                 todayCompletion={getDayCompletion(state, todayKey)}
-                xp={xp}
-                level={level}
-                levelProgress={levelProgress}
-                monthAverage={monthAverage}
+                weeklyData={weeklyData}
               />
-              <WeeklyOverview weeklyData={weeklyData} />
+              <CalendarHeatmap
+                state={state}
+                selectedDate={selectedDate}
+                selectedDateKey={selectedDateKey}
+                monthDays={monthDays}
+                onSelectedDate={actions.setSelectedDate}
+              />
             </section>
 
             <section className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
@@ -206,15 +202,8 @@ export function TrackerPage() {
               />
             </section>
 
-            <section className="grid gap-4 lg:grid-cols-[1fr_0.85fr]">
+            <section className="grid gap-4">
               <ProgressChart trendData={trendData} />
-              <CalendarHeatmap
-                state={state}
-                selectedDate={selectedDate}
-                selectedDateKey={selectedDateKey}
-                monthDays={monthDays}
-                onSelectedDate={actions.setSelectedDate}
-              />
             </section>
 
             <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

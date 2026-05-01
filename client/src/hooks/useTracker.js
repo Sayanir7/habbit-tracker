@@ -15,6 +15,8 @@ const readTheme = (fallback = false) => {
   return fallback;
 };
 
+const confirmDelete = (message) => typeof window === "undefined" || window.confirm(message);
+
 const readGuestState = () => {
   const raw = localStorage.getItem(GUEST_STORAGE_KEY);
   if (!raw) return createDemoState();
@@ -186,6 +188,9 @@ export const useTracker = () => {
   };
 
   const deleteHabit = async (habitId) => {
+    const habit = state.habits.find((item) => item.id === habitId);
+    if (!confirmDelete(`Delete "${habit?.name ?? "this habit"}"? This cannot be undone.`)) return;
+
     setGuestState((current) => ({ ...current, habits: current.habits.filter((habit) => habit.id !== habitId) }));
     if (isAuthenticated) await api.deleteHabit(habitId);
   };
@@ -228,6 +233,9 @@ export const useTracker = () => {
   };
 
   const deleteTask = async (date, taskId) => {
+    const task = (state.tasks[date] ?? []).find((item) => item.id === taskId);
+    if (!confirmDelete(`Delete "${task?.title ?? "this task"}"? This cannot be undone.`)) return;
+
     setGuestState((current) => ({
       ...current,
       tasks: {
