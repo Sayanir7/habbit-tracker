@@ -1,10 +1,21 @@
-import React from "react";
+import React, { useRef } from "react";
 import { CalendarDays, Check } from "lucide-react";
 import { Card } from "../common/Card.jsx";
+import { IconButton } from "../common/IconButton.jsx";
 import { formatKey } from "../../utils/date.js";
 import { getDayCompletion } from "../../utils/stats.js";
 
 export function CalendarHeatmap({ state, selectedDate, selectedDateKey, monthDays, onSelectedDate }) {
+  const dateInputRef = useRef(null);
+
+  const openDatePicker = () => {
+    if (dateInputRef.current?.showPicker) {
+      dateInputRef.current.showPicker();
+      return;
+    }
+    dateInputRef.current?.focus();
+  };
+
   return (
     <Card>
       <div className="flex items-center justify-between">
@@ -14,7 +25,20 @@ export function CalendarHeatmap({ state, selectedDate, selectedDateKey, monthDay
             {selectedDate.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
           </h2>
         </div>
-        <CalendarDays className="text-emerald-600" size={24} />
+        <div className="relative">
+          <IconButton label="Search day" onClick={openDatePicker}>
+            <CalendarDays className="text-emerald-600" size={20} />
+          </IconButton>
+          <input
+            ref={dateInputRef}
+            type="date"
+            value={selectedDateKey}
+            onChange={(event) => event.target.value && onSelectedDate(event.target.value)}
+            className="pointer-events-none absolute inset-0 h-10 w-10 opacity-0"
+            aria-label="Search day"
+            tabIndex={-1}
+          />
+        </div>
       </div>
       <div className="mt-5 grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-500 dark:text-slate-400 sm:gap-2">
         {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (

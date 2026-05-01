@@ -6,6 +6,14 @@ import { formatKey } from "../utils/date.js";
 const GUEST_STORAGE_KEY = "habit-quest-guest-state";
 const TOKEN_KEY = "habit-quest-token";
 const USER_KEY = "habit-quest-user";
+const THEME_STORAGE_KEY = "habit-quest-theme";
+
+const readTheme = (fallback = false) => {
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  if (savedTheme === "dark") return true;
+  if (savedTheme === "light") return false;
+  return fallback;
+};
 
 const readGuestState = () => {
   const raw = localStorage.getItem(GUEST_STORAGE_KEY);
@@ -32,7 +40,10 @@ const readUser = () => {
 export const useTracker = () => {
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
   const [user, setUser] = useState(readUser);
-  const [state, setState] = useState(() => (localStorage.getItem(TOKEN_KEY) ? emptyTrackerState() : readGuestState()));
+  const [state, setState] = useState(() => {
+    const initialState = localStorage.getItem(TOKEN_KEY) ? emptyTrackerState() : readGuestState();
+    return { ...initialState, darkMode: readTheme(initialState.darkMode) };
+  });
   const [loading, setLoading] = useState(Boolean(token));
   const [authError, setAuthError] = useState("");
 
@@ -40,6 +51,7 @@ export const useTracker = () => {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", Boolean(state.darkMode));
+    localStorage.setItem(THEME_STORAGE_KEY, state.darkMode ? "dark" : "light");
   }, [state.darkMode]);
 
   useEffect(() => {
@@ -119,7 +131,8 @@ export const useTracker = () => {
     localStorage.removeItem(USER_KEY);
     setToken(null);
     setUser(null);
-    setState(readGuestState());
+    const guestState = readGuestState();
+    setState({ ...guestState, darkMode: readTheme(guestState.darkMode) });
   }
 
   const setDarkMode = () => setGuestState((current) => ({ ...current, darkMode: !current.darkMode }));
