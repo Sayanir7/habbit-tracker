@@ -1,12 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import { Flame } from "lucide-react";
 import { Card } from "../common/Card.jsx";
 import { ProgressRing } from "../common/ProgressRing.jsx";
 
-export function DashboardSummary({ todayCompletion, weeklyData }) {
+export function DashboardSummary({ todayCompletion, weeklyData, state, selectedDateKey, onUpdateNote}) {
+  const [diaryDraft, setDiaryDraft] = useState(""); 
+  const dayNote = state.notes[selectedDateKey] ?? "";
   const weeklyAverage = weeklyData.length
     ? Math.round(weeklyData.reduce((sum, item) => sum + item.value, 0) / weeklyData.length)
     : 0;
+
+  const addDiaryEntry = async () => {
+    const entry = diaryDraft.trim();
+    if (!entry) return;
+
+    const timestamp = new Date().toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    });
+    await onUpdateNote(selectedDateKey, `${dayNote ? `${dayNote}\n\n` : ""}[${timestamp}] ${entry}`);
+    setDiaryDraft("");
+  };
+
 
   return (
     <Card className="overflow-hidden">
@@ -41,6 +58,30 @@ export function DashboardSummary({ todayCompletion, weeklyData }) {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* // add diary */}
+      <div className="mt-5 rounded-lg border border-stone-200 p-3 dark:border-slate-800">
+
+        <div>
+            <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Diary</p>
+
+        </div>
+          <textarea
+          value={diaryDraft}
+          onChange={(event) => setDiaryDraft(event.target.value)}
+          className="mt-3 min-h-20 w-full resize-none rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:focus:ring-emerald-950"
+          placeholder="Write something about your day"
+        />
+        <div className="mt-2 flex justify-end">
+          <button
+            onClick={addDiaryEntry}
+            className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-bold text-white transition hover:bg-emerald-700"
+          >
+            Add diary entry
+          </button>
+        </div>
+
       </div>
     </Card>
   );

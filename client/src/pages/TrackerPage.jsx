@@ -2,7 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { AuthModal } from "../components/auth/AuthModal.jsx";
 import { DashboardSummary } from "../components/dashboard/DashboardSummary.jsx";
 import { AiSuggestions } from "../components/gamification/AiSuggestions.jsx";
-import { BadgesPanel, InsightsPanel } from "../components/gamification/BadgesPanel.jsx";
+import {
+  BadgesPanel,
+  InsightsPanel,
+} from "../components/gamification/BadgesPanel.jsx";
 import { HabitTracker } from "../components/habits/HabitTracker.jsx";
 import { AppHeader } from "../components/layout/AppHeader.jsx";
 import { TaskManager } from "../components/tasks/TaskManager.jsx";
@@ -11,25 +14,43 @@ import { CalendarHeatmap } from "../components/visualization/CalendarHeatmap.jsx
 import { ProgressChart } from "../components/visualization/ProgressChart.jsx";
 import { useTracker } from "../hooks/useTracker.js";
 import { addDays, formatKey, getMonthDays } from "../utils/date.js";
-import { getAchievements, getDayCompletion, getHabitStats } from "../utils/stats.js";
+import {
+  getAchievements,
+  getDayCompletion,
+  getHabitStats,
+} from "../utils/stats.js";
 
 const REMINDERS_KEY = "habit-quest-reminders-enabled";
 const LAST_REMINDER_KEY = "habit-quest-last-reminder-date";
 
 const getOutstandingItems = (state, dateKey) => {
   const tasks = Object.entries(state.tasks)
-    .flatMap(([taskDate, dayTasks]) => dayTasks.map((task) => ({ ...task, taskDate })))
+    .flatMap(([taskDate, dayTasks]) =>
+      dayTasks.map((task) => ({ ...task, taskDate })),
+    )
     .filter((task) => !task.done && task.taskDate <= dateKey)
     .sort((a, b) => a.taskDate.localeCompare(b.taskDate))
-    .map((task) => (task.taskDate === dateKey ? task.title : `${task.title} (${task.taskDate})`));
-  const habits = state.habits.filter((habit) => !habit.history?.[dateKey]).map((habit) => habit.name);
+    .map((task) =>
+      task.taskDate === dateKey
+        ? task.title
+        : `${task.title} (${task.taskDate})`,
+    );
+  const habits = state.habits
+    .filter((habit) => !habit.history?.[dateKey])
+    .map((habit) => habit.name);
   return { tasks, habits };
 };
 
 const formatReminderBody = ({ tasks, habits }) => {
   const sections = [];
-  if (tasks.length) sections.push(`Tasks: ${tasks.slice(0, 4).join(", ")}${tasks.length > 4 ? "..." : ""}`);
-  if (habits.length) sections.push(`Habits: ${habits.slice(0, 4).join(", ")}${habits.length > 4 ? "..." : ""}`);
+  if (tasks.length)
+    sections.push(
+      `Tasks: ${tasks.slice(0, 4).join(", ")}${tasks.length > 4 ? "..." : ""}`,
+    );
+  if (habits.length)
+    sections.push(
+      `Habits: ${habits.slice(0, 4).join(", ")}${habits.length > 4 ? "..." : ""}`,
+    );
   return sections.join("\n") || "Everything for today is complete.";
 };
 
@@ -41,7 +62,10 @@ export function TrackerPage() {
   const selectedDateKey = state.selectedDate || todayKey;
   const selectedDate = new Date(`${selectedDateKey}T12:00:00`);
 
-  const monthDays = useMemo(() => getMonthDays(selectedDate), [selectedDateKey]);
+  const monthDays = useMemo(
+    () => getMonthDays(selectedDate),
+    [selectedDateKey],
+  );
   const weeklyData = useMemo(
     () =>
       Array.from({ length: 7 }, (_, index) => {
@@ -49,10 +73,10 @@ export function TrackerPage() {
         const key = formatKey(date);
         return {
           day: date.toLocaleDateString(undefined, { weekday: "short" }),
-          value: getDayCompletion(state, key)
+          value: getDayCompletion(state, key),
         };
       }),
-    [state]
+    [state],
   );
   const trendData = useMemo(
     () =>
@@ -60,29 +84,40 @@ export function TrackerPage() {
         const date = addDays(today, index - 13);
         const key = formatKey(date);
         return {
-          date: date.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-          progress: getDayCompletion(state, key)
+          date: date.toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+          }),
+          progress: getDayCompletion(state, key),
         };
       }),
-    [state]
+    [state],
   );
 
   const bestHabit = [...state.habits]
     .map((habit) => ({ ...habit, ...getHabitStats(habit) }))
     .sort((a, b) => b.completion - a.completion)[0];
-  const bestDay = trendData.reduce((best, item) => (item.progress > best.progress ? item : best), trendData[0]);
+  const bestDay = trendData.reduce(
+    (best, item) => (item.progress > best.progress ? item : best),
+    trendData[0],
+  );
 
   const sendOutstandingNotification = (force = false) => {
-    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    if (!("Notification" in window) || Notification.permission !== "granted")
+      return;
     const outstanding = getOutstandingItems(state, todayKey);
-    const hasOutstanding = outstanding.tasks.length > 0 || outstanding.habits.length > 0;
+    const hasOutstanding =
+      outstanding.tasks.length > 0 || outstanding.habits.length > 0;
     if (!force && !hasOutstanding) return;
 
-    new Notification(hasOutstanding ? "Unfinished items for today" : "Habit Quest is clear", {
-      body: formatReminderBody(outstanding),
-      icon: "/pwa-192x192.png",
-      badge: "/pwa-192x192.png"
-    });
+    new Notification(
+      hasOutstanding ? "Unfinished items for today" : "Habit Quest is clear",
+      {
+        body: formatReminderBody(outstanding),
+        icon: "/pwa-192x192.png",
+        badge: "/pwa-192x192.png",
+      },
+    );
     localStorage.setItem(LAST_REMINDER_KEY, todayKey);
   };
 
@@ -91,15 +126,29 @@ export function TrackerPage() {
     if (Notification.permission !== "granted") return undefined;
     if (localStorage.getItem(REMINDERS_KEY) !== "true") return undefined;
     if (localStorage.getItem(LAST_REMINDER_KEY) !== todayKey) {
-      const timer = window.setTimeout(() => sendOutstandingNotification(false), 1200);
+      const timer = window.setTimeout(
+        () => sendOutstandingNotification(false),
+        1200,
+      );
       return () => window.clearTimeout(timer);
     }
     return undefined;
   }, [state, todayKey]);
 
   const exportCsv = () => {
-    const rows = [["date", "completion", "completed_tasks", "total_tasks", "completed_habits", "total_habits"]];
-    Array.from({ length: 30 }, (_, index) => formatKey(addDays(today, index - 29))).forEach((key) => {
+    const rows = [
+      [
+        "date",
+        "completion",
+        "completed_tasks",
+        "total_tasks",
+        "completed_habits",
+        "total_habits",
+      ],
+    ];
+    Array.from({ length: 30 }, (_, index) =>
+      formatKey(addDays(today, index - 29)),
+    ).forEach((key) => {
       const tasks = state.tasks[key] ?? [];
       rows.push([
         key,
@@ -107,11 +156,13 @@ export function TrackerPage() {
         tasks.filter((task) => task.done).length,
         tasks.length,
         state.habits.filter((habit) => habit.history?.[key]).length,
-        state.habits.length
+        state.habits.length,
       ]);
     });
 
-    const blob = new Blob([rows.map((row) => row.join(",")).join("\n")], { type: "text/csv;charset=utf-8" });
+    const blob = new Blob([rows.map((row) => row.join(",")).join("\n")], {
+      type: "text/csv;charset=utf-8",
+    });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -146,7 +197,8 @@ export function TrackerPage() {
 
         {!isAuthenticated && (
           <div className="max-w-full break-words rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium leading-6 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
-            You are viewing guest demo data. Log in or sign up to start with your own empty tracker and save to MongoDB.
+            You are viewing guest demo data. Log in or sign up to start with
+            your own tracker.
           </div>
         )}
 
@@ -160,12 +212,17 @@ export function TrackerPage() {
               <DashboardSummary
                 todayCompletion={getDayCompletion(state, todayKey)}
                 weeklyData={weeklyData}
-              />
-              <CalendarHeatmap
                 state={state}
-                selectedDate={selectedDate}
                 selectedDateKey={selectedDateKey}
-                monthDays={monthDays}
+                onUpdateNote={actions.updateNote}
+              />
+
+              <UniversalTaskCard
+                tasks={state.tasks}
+                todayKey={todayKey}
+                onAddTask={actions.addTask}
+                onToggleTask={actions.toggleTask}
+                onDeleteTask={actions.deleteTask}
                 onSelectedDate={actions.setSelectedDate}
               />
             </section>
@@ -179,17 +236,7 @@ export function TrackerPage() {
                 onUpdateHabitName={actions.updateHabitName}
                 onDeleteHabit={actions.deleteHabit}
               />
-              <UniversalTaskCard
-                tasks={state.tasks}
-                todayKey={todayKey}
-                onAddTask={actions.addTask}
-                onToggleTask={actions.toggleTask}
-                onDeleteTask={actions.deleteTask}
-                onSelectedDate={actions.setSelectedDate}
-              />
-            </section>
 
-            <section className="grid gap-4">
               <TaskManager
                 state={state}
                 selectedDate={selectedDate}
@@ -202,7 +249,14 @@ export function TrackerPage() {
               />
             </section>
 
-            <section className="grid gap-4">
+            <section className="grid gap-4 lg:grid-cols-[0.65fr_1.35fr]">
+              <CalendarHeatmap
+                state={state}
+                selectedDate={selectedDate}
+                selectedDateKey={selectedDateKey}
+                monthDays={monthDays}
+                onSelectedDate={actions.setSelectedDate}
+              />
               <ProgressChart trendData={trendData} />
             </section>
 
