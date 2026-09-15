@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { AuthModal } from "../components/auth/AuthModal.jsx";
 import { DashboardSummary } from "../components/dashboard/DashboardSummary.jsx";
-import { AiSuggestions } from "../components/gamification/AiSuggestions.jsx";
+import { QuickHelperGPT } from "../components/gamification/AiSuggestions.jsx";
 import {
   BadgesPanel,
   InsightsPanel,
@@ -262,7 +262,7 @@ export function TrackerPage() {
 
             <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               <BadgesPanel achievements={getAchievements(state)} />
-              <AiSuggestions onSuggestion={actions.addHabit} />
+              <QuickHelperGPT />
               <InsightsPanel bestDay={bestDay} bestHabit={bestHabit} />
             </section>
           </>

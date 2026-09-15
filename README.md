@@ -51,3 +51,15 @@ mongodb://127.0.0.1:27017/habit_quest
 You can override it by copying `server/.env.example` to `server/.env` and setting `MONGODB_URI` plus `JWT_SECRET`.
 
 Guest mode shows demo data. After login/signup, tracker data is loaded only from MongoDB, so new users start empty.
+
+## AI Helper
+
+The Quick Helper GPT card calls the backend route `POST /api/assistant/chat`, which uses Gemini on the server.
+
+Add this to `server/.env`:
+
+```text
+GEMINI_API_KEY=your-gemini-api-key
+```
+
+The assistant request includes a `mode` field. It currently supports `chat`; the backend service layer is ready for a future `agent` mode.
