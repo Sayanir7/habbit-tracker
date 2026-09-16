@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Card } from "../common/Card.jsx";
 import { ProgressRing } from "../common/ProgressRing.jsx";
 import { DailyKnowledgeFeed } from "./DailyKnowledgeFeed.jsx";
@@ -7,6 +7,7 @@ export function DashboardSummary({ todayCompletion, todayKey, onUpdateNote, onSe
   const [diaryDraft, setDiaryDraft] = useState("");
   const [location, setLocation] = useState("");
   const [locationSuggestions, setLocationSuggestions] = useState([]);
+  const selectedLocation = useRef("");
 
   const addDiaryEntry = async () => {
     const entry = diaryDraft.trim();
@@ -15,10 +16,11 @@ export function DashboardSummary({ todayCompletion, todayKey, onUpdateNote, onSe
     await onUpdateNote(todayKey, { text: entry }, location.trim());
     setDiaryDraft("");
     setLocation("");
+    selectedLocation.current = "";
   };
 
   useEffect(() => {
-    if (!isAuthenticated || !location.trim()) {
+    if (!isAuthenticated || !location.trim() || location.trim() === selectedLocation.current) {
       setLocationSuggestions([]);
       return undefined;
     }
@@ -48,8 +50,8 @@ export function DashboardSummary({ todayCompletion, todayKey, onUpdateNote, onSe
           placeholder="Write something about your day"
         />
         <div className="relative mt-2">
-          <input value={location} onChange={(event) => setLocation(event.target.value)} className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950" placeholder="Location or address (optional)" />
-          {locationSuggestions.length > 0 && <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-stone-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">{locationSuggestions.map((item) => <button key={item.id} type="button" onClick={() => { setLocation(item.name); setLocationSuggestions([]); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-emerald-50 dark:hover:bg-emerald-950/40">{item.name}</button>)}</div>}
+          <input value={location} onChange={(event) => { selectedLocation.current = ""; setLocation(event.target.value); }} className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950" placeholder="Location or address (optional)" />
+          {locationSuggestions.length > 0 && <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-stone-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">{locationSuggestions.map((item) => <button key={item.id} type="button" onClick={() => { selectedLocation.current = item.name; setLocation(item.name); setLocationSuggestions([]); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-emerald-50 dark:hover:bg-emerald-950/40">{item.name}</button>)}</div>}
         </div>
         <div className="mt-2 flex justify-end">
           <button onClick={addDiaryEntry} className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-bold text-white transition hover:bg-emerald-700">
