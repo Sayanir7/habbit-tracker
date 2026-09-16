@@ -31,6 +31,8 @@ export const api = {
   createTask: (payload) => request("/api/tasks", { method: "POST", body: JSON.stringify(payload) }),
   updateTask: (id, payload) => request(`/api/tasks/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   deleteTask: (id) => request(`/api/tasks/${id}`, { method: "DELETE" }),
-  upsertNote: (date, body) => request(`/api/notes/${date}`, { method: "PUT", body: JSON.stringify({ body }) }),
+  createNote: (date, payload) => request(`/api/notes/${date}`, { method: "POST", body: JSON.stringify(payload) }),
+  listNotes: (page = 1, limit = 10) => request(`/api/notes?page=${page}&limit=${limit}`),
+  searchLocations: (query) => request(`/api/notes/locations?query=${encodeURIComponent(query)}`),
   assistantChat: (payload) => request("/api/assistant/chat", { method: "POST", body: JSON.stringify(payload) })
 };

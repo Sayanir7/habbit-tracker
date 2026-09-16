@@ -8,6 +8,7 @@ import {
 } from "../components/gamification/BadgesPanel.jsx";
 import { HabitTracker } from "../components/habits/HabitTracker.jsx";
 import { AppHeader } from "../components/layout/AppHeader.jsx";
+import { NotesPanel } from "../components/notes/NotesPanel.jsx";
 import { TaskManager } from "../components/tasks/TaskManager.jsx";
 import { UniversalTaskCard } from "../components/tasks/UniversalTaskCard.jsx";
 import { CalendarHeatmap } from "../components/visualization/CalendarHeatmap.jsx";
@@ -212,9 +213,10 @@ export function TrackerPage() {
               <DashboardSummary
                 todayCompletion={getDayCompletion(state, todayKey)}
                 weeklyData={weeklyData}
-                state={state}
-                selectedDateKey={selectedDateKey}
+                todayKey={todayKey}
                 onUpdateNote={actions.updateNote}
+                onSearchLocations={actions.searchLocations}
+                isAuthenticated={isAuthenticated}
               />
 
               <UniversalTaskCard
@@ -246,6 +248,8 @@ export function TrackerPage() {
                 onToggleTask={actions.toggleTask}
                 onDeleteTask={actions.deleteTask}
                 onUpdateNote={actions.updateNote}
+                onSearchLocations={actions.searchLocations}
+                isAuthenticated={isAuthenticated}
               />
             </section>
 
@@ -265,6 +269,8 @@ export function TrackerPage() {
               <QuickHelperGPT />
               <InsightsPanel bestDay={bestDay} bestHabit={bestHabit} />
             </section>
+
+            <NotesPanel notesByDate={state.notes} />
           </>
         )}
       </div>

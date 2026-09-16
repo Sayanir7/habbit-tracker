@@ -22,7 +22,18 @@ const readGuestState = () => {
   if (!raw) return createDemoState();
 
   try {
-    return { ...createDemoState(), ...JSON.parse(raw) };
+    const saved = JSON.parse(raw);
+    const notes = Object.fromEntries(
+      Object.entries(saved.notes ?? {}).map(([date, entries]) => [
+        date,
+        Array.isArray(entries)
+          ? entries
+          : entries
+            ? [{ id: makeId(), date, fields: { text: entries }, location: "" }]
+            : []
+      ])
+    );
+    return { ...createDemoState(), ...saved, notes };
   } catch {
     return createDemoState();
   }
@@ -246,9 +257,28 @@ export const useTracker = () => {
     if (isAuthenticated) await api.deleteTask(taskId);
   };
 
-  const updateNote = async (date, body) => {
-    setGuestState((current) => ({ ...current, notes: { ...current.notes, [date]: body } }));
-    if (isAuthenticated) await api.upsertNote(date, body);
+  const updateNote = async (date, fields, location = "") => {
+    const note = { id: makeId(), date, fields, location, createdAt: new Date().toISOString() };
+    setGuestState((current) => ({
+      ...current,
+      notes: {
+        ...current.notes,
+        [date]: [...(Array.isArray(current.notes[date]) ? current.notes[date] : []), note]
+      }
+    }));
+    if (isAuthenticated) {
+      const savedNote = await api.createNote(date, { fields, location });
+      setState((current) => ({
+        ...current,
+        notes: { ...current.notes, [date]: [...(current.notes[date] ?? []).filter((item) => item.id !== note.id), savedNote] }
+      }));
+    }
+  };
+
+  const searchLocations = async (query) => {
+    if (!isAuthenticated || !query.trim()) return [];
+    const result = await api.searchLocations(query);
+    return result.locations;
   };
 
   return {
@@ -269,7 +299,8 @@ export const useTracker = () => {
       addTask,
       toggleTask,
       deleteTask,
-      updateNote
+      updateNote,
+      searchLocations
     }
   };
 };

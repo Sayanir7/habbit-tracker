@@ -1,7 +1,7 @@
 import { Habit } from "../models/Habit.js";
 import { Note } from "../models/Note.js";
 import { Task } from "../models/Task.js";
-import { toHabit, toTask } from "../utils/serializers.js";
+import { toHabit, toNote, toTask } from "../utils/serializers.js";
 
 export const getTracker = async (req, res) => {
   const [habits, tasks, notes] = await Promise.all([
@@ -17,7 +17,7 @@ export const getTracker = async (req, res) => {
       return acc;
     }, {}),
     notes: notes.reduce((acc, note) => {
-      acc[note.date] = note.body;
+      acc[note.date] = [...(acc[note.date] ?? []), toNote(note)];
       return acc;
     }, {})
   });

@@ -50,7 +50,7 @@ export const createDemoState = () => {
       ]
     },
     notes: {
-      [todayKey]: "Keep the list short and protect the first focus block."
+      [todayKey]: [{ id: makeId(), date: todayKey, fields: { text: "Keep the list short and protect the first focus block." }, location: "" }]
     },
     user: {
       name: "Guest",

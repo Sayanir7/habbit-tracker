@@ -18,3 +18,22 @@ export const toTask = (task) => ({
   done: task.done,
   date: task.date
 });
+
+export const toNote = (note) => {
+  const fields = Object.fromEntries(note.fields ?? []);
+  if (Object.keys(fields).length === 0 && note.body) fields.text = note.body;
+
+  return {
+    id: note._id.toString(),
+    date: note.date,
+    fields,
+    location: note.location || "",
+    createdAt: note.createdAt,
+    updatedAt: note.updatedAt
+  };
+};
+
+export const toLocation = (location) => ({
+  id: location._id.toString(),
+  name: location.name
+});
