@@ -9,12 +9,31 @@ import { formatKey } from "../../utils/date.js";
 export function HabitTracker({ habits, selectedDateKey, onAddHabit, onToggleHabit, onUpdateHabitName, onDeleteHabit, canEdit }) {
   const [habitDraft, setHabitDraft] = useState("");
   const [editingHabitId, setEditingHabitId] = useState(null);
+  const [editingHabitName, setEditingHabitName] = useState("");
   const todayKey = formatKey(new Date());
   const canToggleToday = canEdit && selectedDateKey === todayKey;
 
   const addHabit = async () => {
     await onAddHabit(habitDraft);
     setHabitDraft("");
+  };
+
+  const startEditing = (habit) => {
+    setEditingHabitId(habit.id);
+    setEditingHabitName(habit.name);
+  };
+
+  const saveHabitName = async () => {
+    const trimmedName = editingHabitName.trim();
+    const habit = habits.find((item) => item.id === editingHabitId);
+    if (!habit) return;
+    if (!trimmedName || trimmedName === habit.name) {
+      setEditingHabitId(null);
+      return;
+    }
+
+    await onUpdateHabitName(habit.id, trimmedName);
+    setEditingHabitId(null);
   };
 
   return (
@@ -68,10 +87,13 @@ export function HabitTracker({ habits, selectedDateKey, onAddHabit, onToggleHabi
                   {editingHabitId === habit.id && canEdit ? (
                     <input
                       autoFocus
-                      value={habit.name}
-                      onChange={(event) => onUpdateHabitName(habit.id, event.target.value)}
-                      onBlur={() => setEditingHabitId(null)}
-                      onKeyDown={(event) => event.key === "Enter" && setEditingHabitId(null)}
+                      value={editingHabitName}
+                      onChange={(event) => setEditingHabitName(event.target.value)}
+                      onBlur={saveHabitName}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") event.currentTarget.blur();
+                        if (event.key === "Escape") setEditingHabitId(null);
+                      }}
                       className="w-full rounded-md border border-emerald-300 bg-white px-2 py-1 text-sm font-semibold outline-none dark:bg-slate-950"
                     />
                   ) : (
@@ -84,7 +106,7 @@ export function HabitTracker({ habits, selectedDateKey, onAddHabit, onToggleHabi
                   <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">{stats.maxStreak} day max</p>
                 </div>
                 {canEdit && <>
-                  <IconButton label="Edit habit" onClick={() => setEditingHabitId(habit.id)} className="h-8 w-8 sm:h-9 sm:w-9">
+                  <IconButton label="Edit habit" onClick={() => startEditing(habit)} className="h-8 w-8 sm:h-9 sm:w-9">
                     <Edit3 size={16} />
                   </IconButton>
                   <IconButton label="Delete habit" onClick={() => onDeleteHabit(habit.id)} className="h-8 w-8 sm:h-9 sm:w-9">
