@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const MODEL = "gemini-2.5-flash";
+const MODEL = "gemini-3.6-flash";
 const SYSTEM_INSTRUCTION = "You are a concise, helpful AI assistant. Answer clearly and practically.";
 
 const toGeminiHistory = (history = []) =>
@@ -11,7 +11,7 @@ const toGeminiHistory = (history = []) =>
       parts: [{ text: message.content }]
     }));
 
-export const askGemini = async (message, history = []) => {
+export const askGemini = async (message, history = [], options = {}) => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw Object.assign(new Error("GEMINI_API_KEY is not configured on the server"), { status: 503 });
@@ -31,14 +31,17 @@ export const askGemini = async (message, history = []) => {
     }
   ];
 
+  const generationConfig = {
+    temperature: options.json ? 0.35 : 0.7,
+    topP: options.json ? 0.8 : 0.9,
+    topK: 32,
+    maxOutputTokens: options.json ? 8192 : 2048,
+    ...(options.json ? { responseMimeType: "application/json" } : {})
+  };
+
   const result = await model.generateContent({
     contents,
-    generationConfig: {
-      temperature: 0.7,
-      topP: 0.9,
-      topK: 32,
-      maxOutputTokens: 2048
-    }
+    generationConfig
   });
 
   return result.response.text();

@@ -6,6 +6,7 @@ import habitRoutes from "./routes/habit.routes.js";
 import taskRoutes from "./routes/task.routes.js";
 import noteRoutes from "./routes/note.routes.js";
 import assistantRoutes from "./routes/assistant.routes.js";
+import knowledgeRoutes from "./routes/knowledge.routes.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -39,6 +40,7 @@ export const createApp = () => {
   app.use("/api/tasks", taskRoutes);
   app.use("/api/notes", noteRoutes);
   app.use("/api/assistant", assistantRoutes);
+  app.use("/api/knowledge", knowledgeRoutes);
 
   app.use((error, _req, res, _next) => {
     const status = error.status || 500;

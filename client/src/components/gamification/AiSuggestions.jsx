@@ -12,7 +12,7 @@ const initialMessages = [
   }
 ];
 
-export function QuickHelperGPT({ mode = "chat" }) {
+export function QuickHelperGPT({ mode = "chat", isAuthenticated }) {
   const [messages, setMessages] = useState(initialMessages);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,6 +25,18 @@ export function QuickHelperGPT({ mode = "chat" }) {
         .map(({ role, content }) => ({ role, content })),
     [messages]
   );
+
+  if (!isAuthenticated) {
+    return (
+      <Card className="flex min-h-[24rem] flex-col justify-center">
+        <div className="flex items-center gap-2">
+          <Sparkles className="text-emerald-600" size={22} />
+          <h2 className="text-xl font-bold">Quick Helper GPT</h2>
+        </div>
+        <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">Sign in to use the Gemini assistant.</p>
+      </Card>
+    );
+  }
 
   const sendMessage = async () => {
     const message = draft.trim();

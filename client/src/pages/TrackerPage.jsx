@@ -67,18 +67,6 @@ export function TrackerPage() {
     () => getMonthDays(selectedDate),
     [selectedDateKey],
   );
-  const weeklyData = useMemo(
-    () =>
-      Array.from({ length: 7 }, (_, index) => {
-        const date = addDays(today, index - 6);
-        const key = formatKey(date);
-        return {
-          day: date.toLocaleDateString(undefined, { weekday: "short" }),
-          value: getDayCompletion(state, key),
-        };
-      }),
-    [state],
-  );
   const trendData = useMemo(
     () =>
       Array.from({ length: 14 }, (_, index) => {
@@ -97,7 +85,7 @@ export function TrackerPage() {
 
   const bestHabit = [...state.habits]
     .map((habit) => ({ ...habit, ...getHabitStats(habit) }))
-    .sort((a, b) => b.completion - a.completion)[0];
+    .sort((a, b) => b.maxStreak - a.maxStreak)[0];
   const bestDay = trendData.reduce(
     (best, item) => (item.progress > best.progress ? item : best),
     trendData[0],
@@ -212,7 +200,6 @@ export function TrackerPage() {
             <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
               <DashboardSummary
                 todayCompletion={getDayCompletion(state, todayKey)}
-                weeklyData={weeklyData}
                 todayKey={todayKey}
                 onUpdateNote={actions.updateNote}
                 onSearchLocations={actions.searchLocations}
@@ -270,7 +257,7 @@ export function TrackerPage() {
 
             <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               <BadgesPanel achievements={getAchievements(state)} />
-              <QuickHelperGPT />
+              <QuickHelperGPT isAuthenticated={isAuthenticated} />
               <InsightsPanel bestDay={bestDay} bestHabit={bestHabit} />
             </section>
 

@@ -34,5 +34,6 @@ export const api = {
   createNote: (date, payload) => request(`/api/notes/${date}`, { method: "POST", body: JSON.stringify(payload) }),
   listNotes: (page = 1, limit = 10) => request(`/api/notes?page=${page}&limit=${limit}`),
   searchLocations: (query) => request(`/api/notes/locations?query=${encodeURIComponent(query)}`),
+  dailyKnowledge: () => request("/api/knowledge/daily"),
   assistantChat: (payload) => request("/api/assistant/chat", { method: "POST", body: JSON.stringify(payload) })
 };

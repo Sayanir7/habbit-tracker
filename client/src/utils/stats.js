@@ -35,7 +35,7 @@ export const getLevel = (xp) => ({
 
 export const getAchievements = (state) => {
   const totalTasks = Object.values(state.tasks).flat().filter((task) => task.done).length;
-  const bestStreak = Math.max(0, ...state.habits.map((habit) => getHabitStats(habit).streak));
+  const bestStreak = Math.max(0, ...state.habits.map((habit) => getHabitStats(habit).maxStreak));
   const perfectDays = Array.from({ length: 30 }, (_, index) => formatKey(addDays(new Date(), index - 29))).filter(
     (key) => getDayCompletion(state, key) === 100
   ).length;
