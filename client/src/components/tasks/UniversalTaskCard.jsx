@@ -5,7 +5,7 @@ import { EmptyState } from "../common/EmptyState.jsx";
 import { IconButton } from "../common/IconButton.jsx";
 import { shortDate } from "../../utils/date.js";
 
-export function UniversalTaskCard({ tasks, todayKey, onAddTask, onToggleTask, onDeleteTask, onSelectedDate }) {
+export function UniversalTaskCard({ tasks, todayKey, onAddTask, onToggleTask, onDeleteTask, onSelectedDate, canEdit }) {
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState(todayKey);
 
@@ -71,7 +71,7 @@ export function UniversalTaskCard({ tasks, todayKey, onAddTask, onToggleTask, on
         </div>
       </div>
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+      {canEdit && <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
         <input
           value={title}
           onChange={(event) => setTitle(event.target.value)}
@@ -88,7 +88,7 @@ export function UniversalTaskCard({ tasks, todayKey, onAddTask, onToggleTask, on
         <IconButton label="Add upcoming task" onClick={addTask} className="bg-emerald-600 text-white hover:text-white">
           <Plus size={18} />
         </IconButton>
-      </div>
+      </div>}
 
       <div className="mt-4 max-h-96 space-y-2 overflow-auto pr-1">
         {upcomingTasks.length === 0 && <EmptyState>No unfinished upcoming tasks.</EmptyState>}
@@ -100,6 +100,7 @@ export function UniversalTaskCard({ tasks, todayKey, onAddTask, onToggleTask, on
               <button
                 aria-label={`Complete ${task.title}`}
                 onClick={() => onToggleTask(task.date, task.id)}
+                disabled={!canEdit}
                 className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-stone-200 text-slate-400 transition hover:border-emerald-300 hover:text-emerald-700 dark:border-slate-700"
               >
                 <Check size={17} />
@@ -114,9 +115,9 @@ export function UniversalTaskCard({ tasks, todayKey, onAddTask, onToggleTask, on
                   <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${tone.badge}`}>{tone.label}</span>
                 </span>
               </button>
-              <IconButton label="Delete task" onClick={() => onDeleteTask(task.date, task.id)} className="h-8 w-8">
+              {canEdit && <IconButton label="Delete task" onClick={() => onDeleteTask(task.date, task.id)} className="h-8 w-8">
                 <Trash2 size={15} />
-              </IconButton>
+              </IconButton>}
             </div>
           );
         })}

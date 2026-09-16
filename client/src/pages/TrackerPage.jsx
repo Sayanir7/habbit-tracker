@@ -217,6 +217,7 @@ export function TrackerPage() {
                 onUpdateNote={actions.updateNote}
                 onSearchLocations={actions.searchLocations}
                 isAuthenticated={isAuthenticated}
+                canEdit={isAuthenticated}
               />
 
               <UniversalTaskCard
@@ -226,6 +227,7 @@ export function TrackerPage() {
                 onToggleTask={actions.toggleTask}
                 onDeleteTask={actions.deleteTask}
                 onSelectedDate={actions.setSelectedDate}
+                canEdit={isAuthenticated}
               />
             </section>
 
@@ -237,6 +239,7 @@ export function TrackerPage() {
                 onToggleHabit={actions.toggleHabit}
                 onUpdateHabitName={actions.updateHabitName}
                 onDeleteHabit={actions.deleteHabit}
+                canEdit={isAuthenticated}
               />
 
               <TaskManager
@@ -250,6 +253,7 @@ export function TrackerPage() {
                 onUpdateNote={actions.updateNote}
                 onSearchLocations={actions.searchLocations}
                 isAuthenticated={isAuthenticated}
+                canEdit={isAuthenticated}
               />
             </section>
 

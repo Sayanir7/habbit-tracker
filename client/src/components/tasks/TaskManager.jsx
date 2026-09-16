@@ -6,7 +6,7 @@ import { IconButton } from "../common/IconButton.jsx";
 import { addDays, formatKey, shortDate } from "../../utils/date.js";
 import { getDayCompletion } from "../../utils/stats.js";
 
-export function TaskManager({ state, selectedDate, selectedDateKey, onSelectedDate, onAddTask, onToggleTask, onDeleteTask, onUpdateNote, onSearchLocations, isAuthenticated }) {
+export function TaskManager({ state, selectedDate, selectedDateKey, onSelectedDate, onAddTask, onToggleTask, onDeleteTask, onUpdateNote, onSearchLocations, isAuthenticated, canEdit }) {
   const [taskDraft, setTaskDraft] = useState("");
   const [diaryDraft, setDiaryDraft] = useState("");
   const [location, setLocation] = useState("");
@@ -72,7 +72,7 @@ export function TaskManager({ state, selectedDate, selectedDateKey, onSelectedDa
           <p className="mt-1 text-2xl font-bold">{getDayCompletion(state, selectedDateKey)}%</p>
         </div>
       </div>
-      <div className="mt-4 flex gap-2">
+      {canEdit && <div className="mt-4 flex gap-2">
         <input
           value={taskDraft}
           onChange={(event) => setTaskDraft(event.target.value)}
@@ -83,7 +83,7 @@ export function TaskManager({ state, selectedDate, selectedDateKey, onSelectedDa
         <IconButton label="Add task" onClick={addTask} className="bg-emerald-600 text-white hover:text-white">
           <Plus size={18} />
         </IconButton>
-      </div>
+      </div>}
       <div className="mt-4 space-y-2">
         {selectedTasks.length === 0 && <EmptyState>No tasks for this day.</EmptyState>}
         {selectedTasks.map((task) => (
@@ -91,6 +91,7 @@ export function TaskManager({ state, selectedDate, selectedDateKey, onSelectedDa
             <button
               aria-label={`Toggle ${task.title}`}
               onClick={() => onToggleTask(selectedDateKey, task.id)}
+              disabled={!canEdit}
               className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border transition ${
                 task.done ? "animate-pop border-transparent bg-emerald-600 text-white" : "border-stone-200 text-slate-400 dark:border-slate-700"
               }`}
@@ -100,9 +101,9 @@ export function TaskManager({ state, selectedDate, selectedDateKey, onSelectedDa
             <span className={`min-w-0 flex-1 break-words text-sm font-medium ${task.done ? "text-slate-400 line-through" : ""}`}>
               {task.title}
             </span>
-            <IconButton label="Delete task" onClick={() => onDeleteTask(selectedDateKey, task.id)} className="h-8 w-8">
+            {canEdit && <IconButton label="Delete task" onClick={() => onDeleteTask(selectedDateKey, task.id)} className="h-8 w-8">
               <Trash2 size={15} />
-            </IconButton>
+            </IconButton>}
           </div>
         ))}
       </div>
@@ -114,21 +115,21 @@ export function TaskManager({ state, selectedDate, selectedDateKey, onSelectedDa
           </div>
           <Clock className="shrink-0 text-emerald-600" size={20} />
         </div>
-        <textarea
+        {canEdit && <textarea
           value={diaryDraft}
           onChange={(event) => setDiaryDraft(event.target.value)}
           className="mt-3 min-h-20 w-full resize-none rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:focus:ring-emerald-950"
           placeholder="Write something about your day"
-        />
-        <div className="relative mt-2">
+        />}
+        {canEdit && <div className="relative mt-2">
           <input value={location} onChange={(event) => setLocation(event.target.value)} className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950" placeholder="Location or address (optional)" />
           {locationSuggestions.length > 0 && <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-stone-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">{locationSuggestions.map((item) => <button key={item.id} type="button" onClick={() => { setLocation(item.name); setLocationSuggestions([]); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-emerald-50 dark:hover:bg-emerald-950/40">{item.name}</button>)}</div>}
-        </div>
-        <div className="mt-2 flex justify-end">
+        </div>}
+        {canEdit && <div className="mt-2 flex justify-end">
           <button onClick={addDiaryEntry} className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-bold text-white transition hover:bg-emerald-700">
             Add diary entry
           </button>
-        </div>
+        </div>}
         {dayNotes.length > 0 && (
           <div className="mt-3 max-h-40 overflow-auto space-y-2 rounded-lg bg-stone-50 p-3 text-sm leading-6 text-slate-700 dark:bg-slate-950 dark:text-slate-200">
             {dayNotes.map((note) => (

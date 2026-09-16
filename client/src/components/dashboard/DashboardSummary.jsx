@@ -3,7 +3,7 @@ import { Flame } from "lucide-react";
 import { Card } from "../common/Card.jsx";
 import { ProgressRing } from "../common/ProgressRing.jsx";
 
-export function DashboardSummary({ todayCompletion, weeklyData, todayKey, onUpdateNote, onSearchLocations, isAuthenticated }) {
+export function DashboardSummary({ todayCompletion, weeklyData, todayKey, onUpdateNote, onSearchLocations, isAuthenticated, canEdit }) {
   const [diaryDraft, setDiaryDraft] = useState("");
   const [location, setLocation] = useState("");
   const [locationSuggestions, setLocationSuggestions] = useState([]);
@@ -69,7 +69,7 @@ export function DashboardSummary({ todayCompletion, weeklyData, todayKey, onUpda
           ))}
         </div>
       </div>
-      <div className="mt-5 rounded-lg border border-stone-200 p-3 dark:border-slate-800">
+      {canEdit && <div className="mt-5 rounded-lg border border-stone-200 p-3 dark:border-slate-800">
         <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Diary</p>
         <textarea
           value={diaryDraft}
@@ -86,7 +86,7 @@ export function DashboardSummary({ todayCompletion, weeklyData, todayKey, onUpda
             Add diary entry
           </button>
         </div>
-      </div>
+      </div>}
     </Card>
   );
 }

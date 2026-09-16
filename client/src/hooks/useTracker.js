@@ -153,126 +153,87 @@ export const useTracker = () => {
   const setSelectedDate = (selectedDate) => setGuestState((current) => ({ ...current, selectedDate }));
 
   const addHabit = async (name) => {
+    if (!isAuthenticated) return;
     const trimmedName = name.trim();
     if (!trimmedName) return;
 
-    if (isAuthenticated) {
-      const habit = await api.createHabit({
-        name: trimmedName,
-        color: habitColors[state.habits.length % habitColors.length]
-      });
-      setState((current) => ({ ...current, habits: [...current.habits, habit] }));
-      return;
-    }
-
-    setGuestState((current) => ({
-      ...current,
-      habits: [
-        ...current.habits,
-        {
-          id: makeId(),
-          name: trimmedName,
-          color: habitColors[current.habits.length % habitColors.length],
-          reminder: "",
-          history: {}
-        }
-      ]
-    }));
+    const habit = await api.createHabit({
+      name: trimmedName,
+      color: habitColors[state.habits.length % habitColors.length]
+    });
+    setState((current) => ({ ...current, habits: [...current.habits, habit] }));
   };
 
   const updateHabitName = async (habitId, name) => {
-    const apply = (habit) => (habit.id === habitId ? { ...habit, name } : habit);
-    setGuestState((current) => ({ ...current, habits: current.habits.map(apply) }));
-    if (isAuthenticated) await api.updateHabit(habitId, { name });
+    if (!isAuthenticated) return;
+    const habit = await api.updateHabit(habitId, { name });
+    setState((current) => ({ ...current, habits: current.habits.map((item) => item.id === habitId ? habit : item) }));
   };
 
   const toggleHabit = async (habitId, dateKey) => {
+    if (!isAuthenticated) return;
     const habit = state.habits.find((item) => item.id === habitId);
     if (!habit) return;
 
     const history = { ...habit.history, [dateKey]: !habit.history?.[dateKey] };
-    setGuestState((current) => ({
-      ...current,
-      habits: current.habits.map((item) => (item.id === habitId ? { ...item, history } : item))
-    }));
-    if (isAuthenticated) await api.updateHabit(habitId, { history });
+    const updatedHabit = await api.updateHabit(habitId, { history });
+    setState((current) => ({ ...current, habits: current.habits.map((item) => item.id === habitId ? updatedHabit : item) }));
   };
 
   const deleteHabit = async (habitId) => {
+    if (!isAuthenticated) return;
     const habit = state.habits.find((item) => item.id === habitId);
     if (!confirmDelete(`Delete "${habit?.name ?? "this habit"}"? This cannot be undone.`)) return;
 
-    setGuestState((current) => ({ ...current, habits: current.habits.filter((habit) => habit.id !== habitId) }));
-    if (isAuthenticated) await api.deleteHabit(habitId);
+    await api.deleteHabit(habitId);
+    setState((current) => ({ ...current, habits: current.habits.filter((item) => item.id !== habitId) }));
   };
 
   const addTask = async (date, title) => {
+    if (!isAuthenticated) return;
     const trimmedTitle = title.trim();
     if (!trimmedTitle) return;
 
-    if (isAuthenticated) {
-      const task = await api.createTask({ date, title: trimmedTitle, done: false });
-      setState((current) => ({
-        ...current,
-        tasks: { ...current.tasks, [date]: [...(current.tasks[date] ?? []), task] }
-      }));
-      return;
-    }
-
-    setGuestState((current) => ({
+    const task = await api.createTask({ date, title: trimmedTitle, done: false });
+    setState((current) => ({
       ...current,
-      tasks: {
-        ...current.tasks,
-        [date]: [...(current.tasks[date] ?? []), { id: makeId(), title: trimmedTitle, done: false }]
-      }
+      tasks: { ...current.tasks, [date]: [...(current.tasks[date] ?? []), task] }
     }));
   };
 
   const toggleTask = async (date, taskId) => {
+    if (!isAuthenticated) return;
     const task = (state.tasks[date] ?? []).find((item) => item.id === taskId);
     if (!task) return;
 
     const done = !task.done;
-    setGuestState((current) => ({
+    const updatedTask = await api.updateTask(taskId, { done });
+    setState((current) => ({
       ...current,
-      tasks: {
-        ...current.tasks,
-        [date]: (current.tasks[date] ?? []).map((item) => (item.id === taskId ? { ...item, done } : item))
-      }
+      tasks: { ...current.tasks, [date]: (current.tasks[date] ?? []).map((item) => item.id === taskId ? updatedTask : item) }
     }));
-    if (isAuthenticated) await api.updateTask(taskId, { done });
   };
 
   const deleteTask = async (date, taskId) => {
+    if (!isAuthenticated) return;
     const task = (state.tasks[date] ?? []).find((item) => item.id === taskId);
     if (!confirmDelete(`Delete "${task?.title ?? "this task"}"? This cannot be undone.`)) return;
 
-    setGuestState((current) => ({
+    await api.deleteTask(taskId);
+    setState((current) => ({
       ...current,
-      tasks: {
-        ...current.tasks,
-        [date]: (current.tasks[date] ?? []).filter((task) => task.id !== taskId)
-      }
+      tasks: { ...current.tasks, [date]: (current.tasks[date] ?? []).filter((item) => item.id !== taskId) }
     }));
-    if (isAuthenticated) await api.deleteTask(taskId);
   };
 
   const updateNote = async (date, fields, location = "") => {
+    if (!isAuthenticated) return;
     const note = { id: makeId(), date, fields, location, createdAt: new Date().toISOString() };
-    setGuestState((current) => ({
+    const savedNote = await api.createNote(date, { fields, location });
+    setState((current) => ({
       ...current,
-      notes: {
-        ...current.notes,
-        [date]: [...(Array.isArray(current.notes[date]) ? current.notes[date] : []), note]
-      }
+      notes: { ...current.notes, [date]: [...(current.notes[date] ?? []).filter((item) => item.id !== note.id), savedNote] }
     }));
-    if (isAuthenticated) {
-      const savedNote = await api.createNote(date, { fields, location });
-      setState((current) => ({
-        ...current,
-        notes: { ...current.notes, [date]: [...(current.notes[date] ?? []).filter((item) => item.id !== note.id), savedNote] }
-      }));
-    }
   };
 
   const searchLocations = async (query) => {

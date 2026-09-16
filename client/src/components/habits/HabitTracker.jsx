@@ -5,7 +5,7 @@ import { EmptyState } from "../common/EmptyState.jsx";
 import { IconButton } from "../common/IconButton.jsx";
 import { getHabitStats } from "../../utils/stats.js";
 
-export function HabitTracker({ habits, selectedDateKey, onAddHabit, onToggleHabit, onUpdateHabitName, onDeleteHabit }) {
+export function HabitTracker({ habits, selectedDateKey, onAddHabit, onToggleHabit, onUpdateHabitName, onDeleteHabit, canEdit }) {
   const [habitDraft, setHabitDraft] = useState("");
   const [editingHabitId, setEditingHabitId] = useState(null);
 
@@ -25,7 +25,7 @@ export function HabitTracker({ habits, selectedDateKey, onAddHabit, onToggleHabi
           {habits.length} active
         </span>
       </div>
-      <div className="mb-4 flex gap-2">
+      {canEdit && <div className="mb-4 flex gap-2">
         <input
           value={habitDraft}
           onChange={(event) => setHabitDraft(event.target.value)}
@@ -36,7 +36,7 @@ export function HabitTracker({ habits, selectedDateKey, onAddHabit, onToggleHabi
         <IconButton label="Add habit" onClick={addHabit} className="bg-emerald-600 text-white hover:text-white">
           <Plus size={18} />
         </IconButton>
-      </div>
+      </div>}
       <div className="space-y-3">
         {habits.length === 0 && <EmptyState>Add your first habit to begin tracking.</EmptyState>}
         {habits.map((habit) => {
@@ -49,6 +49,7 @@ export function HabitTracker({ habits, selectedDateKey, onAddHabit, onToggleHabi
             >
               <div className="flex items-center gap-2 sm:gap-3">
                 <button
+                  disabled={!canEdit}
                   aria-label={`Toggle ${habit.name}`}
                   onClick={() => onToggleHabit(habit.id, selectedDateKey)}
                   className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg border transition sm:h-10 sm:w-10 ${
@@ -60,7 +61,7 @@ export function HabitTracker({ habits, selectedDateKey, onAddHabit, onToggleHabi
                   {checked && <Check size={20} />}
                 </button>
                 <div className="min-w-0 flex-1">
-                  {editingHabitId === habit.id ? (
+                  {editingHabitId === habit.id && canEdit ? (
                     <input
                       autoFocus
                       value={habit.name}
@@ -83,12 +84,14 @@ export function HabitTracker({ habits, selectedDateKey, onAddHabit, onToggleHabi
                   <p className="text-sm font-bold">{stats.completion}%</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">{stats.streak} day streak</p>
                 </div>
-                <IconButton label="Edit habit" onClick={() => setEditingHabitId(habit.id)} className="h-8 w-8 sm:h-9 sm:w-9">
-                  <Edit3 size={16} />
-                </IconButton>
-                <IconButton label="Delete habit" onClick={() => onDeleteHabit(habit.id)} className="h-8 w-8 sm:h-9 sm:w-9">
-                  <Trash2 size={16} />
-                </IconButton>
+                {canEdit && <>
+                  <IconButton label="Edit habit" onClick={() => setEditingHabitId(habit.id)} className="h-8 w-8 sm:h-9 sm:w-9">
+                    <Edit3 size={16} />
+                  </IconButton>
+                  <IconButton label="Delete habit" onClick={() => onDeleteHabit(habit.id)} className="h-8 w-8 sm:h-9 sm:w-9">
+                    <Trash2 size={16} />
+                  </IconButton>
+                </>}
               </div>
               <div className="mt-3 flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 sm:hidden">
                 <span>{stats.completion}% complete</span>
