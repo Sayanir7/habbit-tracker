@@ -4,10 +4,13 @@ import { Card } from "../common/Card.jsx";
 import { EmptyState } from "../common/EmptyState.jsx";
 import { IconButton } from "../common/IconButton.jsx";
 import { getHabitStats } from "../../utils/stats.js";
+import { formatKey } from "../../utils/date.js";
 
 export function HabitTracker({ habits, selectedDateKey, onAddHabit, onToggleHabit, onUpdateHabitName, onDeleteHabit, canEdit }) {
   const [habitDraft, setHabitDraft] = useState("");
   const [editingHabitId, setEditingHabitId] = useState(null);
+  const todayKey = formatKey(new Date());
+  const canToggleToday = canEdit && selectedDateKey === todayKey;
 
   const addHabit = async () => {
     await onAddHabit(habitDraft);
@@ -49,9 +52,10 @@ export function HabitTracker({ habits, selectedDateKey, onAddHabit, onToggleHabi
             >
               <div className="flex items-center gap-2 sm:gap-3">
                 <button
-                  disabled={!canEdit}
+                  disabled={!canToggleToday}
                   aria-label={`Toggle ${habit.name}`}
                   onClick={() => onToggleHabit(habit.id, selectedDateKey)}
+                  title={canToggleToday ? "Mark habit for today" : "Habits can only be marked today"}
                   className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg border transition sm:h-10 sm:w-10 ${
                     checked
                       ? "animate-pop border-transparent bg-emerald-600 text-white"
@@ -73,16 +77,11 @@ export function HabitTracker({ habits, selectedDateKey, onAddHabit, onToggleHabi
                   ) : (
                     <h3 className="truncate text-sm font-bold">{habit.name}</h3>
                   )}
-                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-stone-100 dark:bg-slate-800">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{ width: `${stats.completion}%`, backgroundColor: habit.color }}
-                    />
-                  </div>
                 </div>
                 <div className="hidden text-right sm:block">
-                  <p className="text-sm font-bold">{stats.completion}%</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{stats.streak} day streak</p>
+                  <p className="text-sm font-bold">{stats.currentStreak} day{stats.currentStreak === 1 ? "" : "s"}</p>
+                  {/* <p className="text-xs text-slate-500 dark:text-slate-400">current streak</p> */}
+                  <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">{stats.maxStreak} day max</p>
                 </div>
                 {canEdit && <>
                   <IconButton label="Edit habit" onClick={() => setEditingHabitId(habit.id)} className="h-8 w-8 sm:h-9 sm:w-9">
@@ -94,8 +93,8 @@ export function HabitTracker({ habits, selectedDateKey, onAddHabit, onToggleHabi
                 </>}
               </div>
               <div className="mt-3 flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 sm:hidden">
-                <span>{stats.completion}% complete</span>
-                <span>{stats.streak} day streak</span>
+                <span>Current: {stats.currentStreak} day{stats.currentStreak === 1 ? "" : "s"}</span>
+                <span>Max: {stats.maxStreak} day{stats.maxStreak === 1 ? "" : "s"}</span>
               </div>
             </div>
           );

@@ -9,7 +9,9 @@ export const toHabit = (habit) => ({
   name: habit.name,
   color: habit.color,
   reminder: habit.reminder,
-  history: Object.fromEntries(habit.history ?? [])
+  history: Object.fromEntries(habit.history ?? []),
+  currentStreak: habit.currentStreak || 0,
+  maxStreak: habit.maxStreak || 0
 });
 
 export const toTask = (task) => ({

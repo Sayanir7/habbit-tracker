@@ -176,7 +176,7 @@ export const useTracker = () => {
     if (!habit) return;
 
     const history = { ...habit.history, [dateKey]: !habit.history?.[dateKey] };
-    const updatedHabit = await api.updateHabit(habitId, { history });
+    const updatedHabit = await api.updateHabit(habitId, { history, changedDate: dateKey });
     setState((current) => ({ ...current, habits: current.habits.map((item) => item.id === habitId ? updatedHabit : item) }));
   };
 

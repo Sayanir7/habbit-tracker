@@ -12,18 +12,10 @@ export const getDayCompletion = (state, dateKey) => {
 };
 
 export const getHabitStats = (habit) => {
-  const entries = Object.entries(habit.history ?? {}).sort(([a], [b]) => a.localeCompare(b));
-  const completed = entries.filter(([, done]) => done).length;
-  let streak = 0;
-
-  for (let cursor = new Date(); cursor >= addDays(new Date(), -90); cursor = addDays(cursor, -1)) {
-    if (habit.history?.[formatKey(cursor)]) streak += 1;
-    else break;
-  }
-
   return {
-    completion: percentage(completed, entries.length || 1),
-    streak
+    currentStreak: habit.currentStreak || 0,
+    maxStreak: habit.maxStreak || 0,
+    streak: habit.currentStreak || 0
   };
 };
 

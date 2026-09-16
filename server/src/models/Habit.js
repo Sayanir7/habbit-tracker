@@ -6,7 +6,9 @@ const habitSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     color: { type: String, default: "#16a34a" },
     reminder: { type: String, default: "" },
-    history: { type: Map, of: Boolean, default: {} }
+    history: { type: Map, of: Boolean, default: {} },
+    currentStreak: { type: Number, default: 0, min: 0 },
+    maxStreak: { type: Number, default: 0, min: 0 }
   },
   { timestamps: true }
 );
