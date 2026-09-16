@@ -46,8 +46,15 @@ export const listNotes = async (req, res) => {
 export const searchLocations = async (req, res) => {
   const query = String(req.query.query || "").trim();
   if (!query) return res.json({ locations: [] });
-  const locations = await Location.find({ userId: req.user._id, name: { $regex: query, $options: "i" } })
-    .sort({ name: 1 })
-    .limit(8);
-  res.json({ locations: locations.map(toLocation) });
+  const locations = await Location.find({ userId: req.user._id, name: { $regex: query, $options: "i" } }).lean();
+  const normalizedQuery = query.toLowerCase();
+  locations.sort((first, second) => {
+    const firstName = first.name.toLowerCase();
+    const secondName = second.name.toLowerCase();
+    const firstRank = firstName === normalizedQuery ? 0 : firstName.startsWith(normalizedQuery) ? 1 : 2;
+    const secondRank = secondName === normalizedQuery ? 0 : secondName.startsWith(normalizedQuery) ? 1 : 2;
+    return firstRank - secondRank || firstName.localeCompare(secondName);
+  });
+  const topLocations = locations.slice(0, 5);
+  res.json({ locations: topLocations.map(toLocation) });
 };
