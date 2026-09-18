@@ -14,6 +14,7 @@ import { UniversalTaskCard } from "../components/tasks/UniversalTaskCard.jsx";
 import { CalendarHeatmap } from "../components/visualization/CalendarHeatmap.jsx";
 import { ProgressChart } from "../components/visualization/ProgressChart.jsx";
 import { useTracker } from "../hooks/useTracker.js";
+import { QuizPage } from "./QuizPage.jsx";
 import { addDays, formatKey, getMonthDays } from "../utils/date.js";
 import {
   getAchievements,
@@ -58,6 +59,7 @@ const formatReminderBody = ({ tasks, habits }) => {
 export function TrackerPage() {
   const { state, loading, authError, isAuthenticated, actions } = useTracker();
   const [authOpen, setAuthOpen] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
   const today = new Date();
   const todayKey = formatKey(today);
   const selectedDateKey = state.selectedDate || todayKey;
@@ -182,6 +184,8 @@ export function TrackerPage() {
           onToggleDarkMode={actions.setDarkMode}
           onExport={exportCsv}
           onReminders={requestNotifications}
+          onQuiz={() => setShowQuiz((value) => !value)}
+          quizActive={showQuiz}
         />
 
         {!isAuthenticated && (
@@ -191,7 +195,9 @@ export function TrackerPage() {
           </div>
         )}
 
-        {loading ? (
+        {showQuiz ? (
+          <QuizPage isAuthenticated={isAuthenticated} onLogin={() => setAuthOpen(true)} />
+        ) : loading ? (
           <div className="rounded-lg border border-stone-200 bg-white p-8 text-center text-sm font-semibold text-slate-500 shadow-soft dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
             Loading your tracker...
           </div>

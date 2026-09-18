@@ -1,0 +1,4 @@
+import { getDailyQuiz, saveAttempt } from "../services/quiz.service.js";
+
+export const dailyQuiz = async (_req, res, next) => { try { const quiz = await getDailyQuiz(); res.json({ date: quiz.date, questions: quiz.questions.map(({ correctAnswer, explanation, numericalAnswer, ...question }) => question) }); } catch (error) { next(error); } };
+export const submitQuiz = async (req, res, next) => { try { const { attempt, quiz } = await saveAttempt(req.user._id, req.body); res.json({ score: attempt.score, total: 10, timeTakenSeconds: attempt.timeTakenSeconds, questions: quiz.questions, answers: attempt.answers }); } catch (error) { next(error); } };

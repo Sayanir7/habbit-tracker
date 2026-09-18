@@ -19,7 +19,7 @@ export const askGemini = async (message, history = [], options = {}) => {
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: MODEL,
+    model: options.model || MODEL,
     systemInstruction: SYSTEM_INSTRUCTION
   });
 
@@ -36,7 +36,8 @@ export const askGemini = async (message, history = [], options = {}) => {
     topP: options.json ? 0.8 : 0.9,
     topK: 32,
     maxOutputTokens: options.json ? 8192 : 2048,
-    ...(options.json ? { responseMimeType: "application/json" } : {})
+    ...(options.json ? { responseMimeType: "application/json" } : {}),
+    ...(options.responseSchema ? { responseSchema: options.responseSchema } : {})
   };
 
   const result = await model.generateContent({
