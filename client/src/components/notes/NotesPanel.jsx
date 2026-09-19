@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, MapPin, Search } from "lucide-react";
 import { Card } from "../common/Card.jsx";
+import { formatDateTime } from "../../utils/date.js";
 
 const PAGE_SIZE = 5;
 
@@ -52,7 +53,10 @@ export function NotesPanel({ notesByDate }) {
             <article key={note.id} className="rounded-lg border border-stone-200 p-3 dark:border-slate-800">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 {/* <p className="text-sm font-bold">{note.fields?.title || ""}</p> */}
-                <time className="text-xs font-semibold text-slate-500 dark:text-slate-400">{note.date}</time>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  <time dateTime={note.createdAt || note.date}>{note.date}</time>
+                  {note.createdAt && <time dateTime={note.createdAt}>{formatDateTime(note.createdAt)}</time>}
+                </div>
               </div>
               <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-200">{note.fields?.text}</p>
               {note.location && <p className="mt-2 flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300"><MapPin size={13} /> {note.location}</p>}

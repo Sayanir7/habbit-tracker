@@ -3,7 +3,7 @@ import { Check, ChevronLeft, ChevronRight, Clock, Plus, Trash2 } from "lucide-re
 import { Card } from "../common/Card.jsx";
 import { EmptyState } from "../common/EmptyState.jsx";
 import { IconButton } from "../common/IconButton.jsx";
-import { addDays, formatKey, shortDate } from "../../utils/date.js";
+import { addDays, formatDateTime, formatKey, shortDate } from "../../utils/date.js";
 import { getDayCompletion } from "../../utils/stats.js";
 
 export function TaskManager({ state, selectedDate, selectedDateKey, onSelectedDate, onAddTask, onToggleTask, onDeleteTask, onUpdateNote, onSearchLocations, isAuthenticated, canEdit }) {
@@ -132,7 +132,7 @@ export function TaskManager({ state, selectedDate, selectedDateKey, onSelectedDa
               <article key={note.id} className="rounded-lg border border-stone-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
                 <p className="whitespace-pre-wrap text-sm leading-6">{note.fields?.text || ""}</p>
                 <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  {note.createdAt && <time>{new Date(note.createdAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</time>}
+                  {note.createdAt && <time dateTime={note.createdAt}>{formatDateTime(note.createdAt)}</time>}
                   {note.location && <span className="text-emerald-700 dark:text-emerald-300">{note.location}</span>}
                 </div>
               </article>
