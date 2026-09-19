@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { getQuizQuestionCount } from "../config/quiz.js";
 
 const quizQuestionSchema = new mongoose.Schema(
   {
@@ -14,7 +15,17 @@ const quizQuestionSchema = new mongoose.Schema(
 );
 
 const dailyQuizSchema = new mongoose.Schema(
-  { date: { type: String, required: true }, questions: { type: [quizQuestionSchema], required: true } },
+  {
+    date: { type: String, required: true },
+    questions: {
+      type: [quizQuestionSchema],
+      required: true,
+      validate: {
+        validator: (questions) => questions.length === getQuizQuestionCount(),
+        message: "Daily quiz has an invalid question count"
+      }
+    }
+  },
   { timestamps: true }
 );
 

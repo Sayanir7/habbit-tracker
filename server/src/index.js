@@ -1,6 +1,7 @@
 import { createApp } from "./app.js";
 import { connectDb } from "./config/db.js";
 import { startDailyQuizScheduler } from "./services/quiz.service.js";
+import { startDailyKnowledgeScheduler } from "./services/knowledge.service.js";
 import dotenv from "dotenv";
 // import dns from "dns";
 
@@ -11,7 +12,11 @@ const PORT = process.env.PORT || 4000;
 const app = createApp();
 
 connectDb()
-  .then(() => { console.log("Connected to MongoDB"); startDailyQuizScheduler(); })
+  .then(() => {
+    console.log("Connected to MongoDB");
+    startDailyQuizScheduler();
+    startDailyKnowledgeScheduler();
+  })
   .catch((error) => {
     console.error("MongoDB connection failed:", error.message);
   })

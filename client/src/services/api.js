@@ -35,7 +35,9 @@ export const api = {
   listNotes: (page = 1, limit = 10) => request(`/api/notes?page=${page}&limit=${limit}`),
   searchLocations: (query) => request(`/api/notes/locations?query=${encodeURIComponent(query)}`),
   dailyKnowledge: () => request("/api/knowledge/daily"),
+  knowledgeHistory: () => request("/api/knowledge/history"),
   dailyQuiz: () => request("/api/quiz/daily"),
+  quizHistory: () => request("/api/quiz/history"),
   submitQuiz: (payload) => request("/api/quiz/attempts", { method: "POST", body: JSON.stringify(payload) }),
   assistantChat: (payload) => request("/api/assistant/chat", { method: "POST", body: JSON.stringify(payload) })
 };
