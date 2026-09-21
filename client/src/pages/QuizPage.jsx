@@ -37,9 +37,12 @@ export function QuizPage({ isAuthenticated, onLogin }) {
     Promise.all([api.dailyQuiz(), api.quizHistory()])
       .then(([dailyQuizData, historyData]) => {
         if (!active) return;
+        const historyEntries = Array.isArray(historyData?.entries) ? historyData.entries : [];
+        const entriesByDate = new Map(historyEntries.map((entry) => [entry.date, entry]));
+        entriesByDate.set(dailyQuizData.date, dailyQuizData);
         setQuiz(dailyQuizData);
         setSelectedDate(dailyQuizData.date);
-        setHistory(Array.isArray(historyData?.entries) ? historyData.entries : []);
+        setHistory([...entriesByDate.values()].sort((first, second) => second.date.localeCompare(first.date)));
       })
       .catch((err) => active && setError(err.message || "Today's quiz is unavailable."));
     return () => {
@@ -59,7 +62,7 @@ export function QuizPage({ isAuthenticated, onLogin }) {
   }, [selectedDate, selectedQuiz?.date]);
 
   const submit = async () => {
-    if (!selectedQuiz || submitting.current || result) return;
+    if (!selectedQuiz || selectedQuiz.fallback || submitting.current || result) return;
     if (!isAuthenticated) {
       onLogin();
       return;
@@ -242,6 +245,7 @@ export function QuizPage({ isAuthenticated, onLogin }) {
                 {selectedQuiz.date} · {getRelativeDateLabel(selectedQuiz.date)}
               </p>
             )}
+            {selectedQuiz.fallback && <p className="mt-2 text-xs font-semibold text-amber-700 dark:text-amber-300">Daily quiz is temporarily unavailable. Showing a mix from recent days.</p>}
           </div>
           <div
             className={`flex items-center gap-2 rounded-lg px-3 py-2 font-mono font-bold ${
@@ -344,6 +348,8 @@ export function QuizPage({ isAuthenticated, onLogin }) {
               Next
               <ArrowRight size={17} />
             </button>
+          ) : selectedQuiz.fallback ? (
+            <span className="text-xs font-semibold text-amber-700 dark:text-amber-300">Submission unavailable while using fallback content.</span>
           ) : (
             <button
               onClick={submit}

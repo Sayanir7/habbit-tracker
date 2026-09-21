@@ -1,6 +1,6 @@
 import { getDailyQuiz, getQuizHistory, saveAttempt } from "../services/quiz.service.js";
 
-export const dailyQuiz = async (_req, res, next) => { try { const quiz = await getDailyQuiz(); res.json({ date: quiz.date, questions: quiz.questions.map(({ correctAnswer, explanation, numericalAnswer, ...question }) => question) }); } catch (error) { next(error); } };
+export const dailyQuiz = async (_req, res, next) => { try { const quiz = await getDailyQuiz(); res.json({ date: quiz.date, fallback: Boolean(quiz.fallback), questions: quiz.questions.map(({ correctAnswer, explanation, numericalAnswer, ...question }) => question) }); } catch (error) { next(error); } };
 
 export const quizHistory = async (_req, res, next) => {
   try {

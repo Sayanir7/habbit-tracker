@@ -46,9 +46,12 @@ export function DailyKnowledgeFeed() {
     ])
       .then(([dailyData, historyData]) => {
         if (!active) return;
+        const historyEntries = Array.isArray(historyData?.entries) ? historyData.entries : [];
+        const entriesByDate = new Map(historyEntries.map((entry) => [entry.date, entry]));
+        entriesByDate.set(dailyData.date, dailyData);
         setFeed(dailyData);
         setSelectedDate(dailyData.date);
-        setHistory(Array.isArray(historyData?.entries) ? historyData.entries : []);
+        setHistory([...entriesByDate.values()].sort((first, second) => second.date.localeCompare(first.date)));
       })
       .catch((requestError) => active && setError(requestError.message || "Knowledge feed is unavailable."));
     return () => { active = false; };
@@ -122,6 +125,7 @@ export function DailyKnowledgeFeed() {
         <div>
           <p className="flex items-center gap-2 text-sm font-semibold text-emerald-700 dark:text-emerald-300"><Sparkles size={16} /> Daily discovery</p>
           <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">{currentEntry.date ? `${currentEntry.date} · ${getRelativeDateLabel(currentEntry.date)}` : "Knowledge feed is unavailable."}</p>
+          {currentEntry.fallback && <p className="mt-2 text-xs font-semibold text-amber-700 dark:text-amber-300">Daily content is temporarily unavailable. Showing a mix from recent days.</p>}
         </div>
         <div className="flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-300"><BookOpen size={18} /> {items.length ? `${index + 1} / ${items.length}` : "0 / 0"}</div>
       </div>

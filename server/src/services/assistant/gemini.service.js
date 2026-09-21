@@ -47,3 +47,22 @@ export const askGemini = async (message, history = [], options = {}) => {
 
   return result.response.text();
 };
+
+export const askGeminiWithFallback = async (message, history = [], options = {}) => {
+  const models = ["gemini-3.6-flash", "gemini-2.6-flash"];
+  let lastError;
+
+  for (const model of models) {
+    try {
+      console.log(`[gemini] trying model=${model}`);
+      const response = await askGemini(message, history, { ...options, model });
+      console.log(`[gemini] succeeded model=${model}`);
+      return response;
+    } catch (error) {
+      lastError = error;
+      console.error(`[gemini] failed model=${model}:`, error.message);
+    }
+  }
+
+  throw lastError;
+};

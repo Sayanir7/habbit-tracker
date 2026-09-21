@@ -2,10 +2,10 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { DailyQuiz } from "../models/DailyQuiz.js";
 import { QuizAttempt } from "../models/QuizAttempt.js";
-import { askGemini } from "./assistant/gemini.service.js";
+import { askGeminiWithFallback } from "./assistant/gemini.service.js";
 import { getQuizQuestionCount } from "../config/quiz.js";
 import { getContentRetentionDays } from "../config/content.js";
-import { dateBefore, getDateKey, getOrGenerateDailyContent, listRecentDailyContent, startDailyContentScheduler } from "./daily-content.service.js";
+import { dateBefore, getDateKey, getOrGenerateDailyContent, getRandomPreviousItems, listRecentDailyContent, startDailyContentScheduler } from "./daily-content.service.js";
 
 const promptPath = fileURLToPath(new URL("../utils/aptitude-system-prompt.md", import.meta.url));
 const generationLocks = new Map();
@@ -54,9 +54,23 @@ const generateAndStore = async (date) => {
   const retentionDays = getContentRetentionDays();
   const previous = await DailyQuiz.find({ date: { $lt: date } }).sort({ date: -1 }).limit(retentionDays).lean();
   const reference = previous.map((entry) => ({ date: entry.date, questions: entry.questions.map(({ question, topic, difficulty, options, correctAnswer }) => ({ question, topic, difficulty, options, correctAnswer })) }));
-  const raw = await askGemini(`SYSTEM PROMPT\n${prompt}\n\nPREVIOUS CONTENT (reference only; avoid duplication):\n${JSON.stringify(reference)}\n\nGENERATION REQUEST\nGenerate exactly ${questionCount} aptitude/reasoning MCQs for date ${date}. Return the required JSON object with date and questions.`, [], { json: true, model: "gemini-2.5-flash", responseSchema });
+  console.log(`[quiz] calling Gemini date=${date} expectedQuestions=${questionCount} referenceDays=${reference.length}`);
+  const raw = await askGeminiWithFallback(`SYSTEM PROMPT\n${prompt}\n\nPREVIOUS CONTENT (reference only; avoid duplication):\n${JSON.stringify(reference)}\n\nGENERATION REQUEST\nGenerate exactly ${questionCount} aptitude/reasoning MCQs for date ${date}. Return the required JSON object with date and questions.`, [], { json: true, responseSchema });
+  console.log(`[quiz] Gemini returned date=${date} responseLength=${raw.length}`);
   const payload = validatePayload(parseJson(raw), date);
-  try { return await DailyQuiz.create(payload); } catch (error) { if (error?.code === 11000) return DailyQuiz.findOne({ date }); throw error; }
+  console.log(`[quiz] validated date=${date} questions=${payload.questions.length}`);
+  try {
+    const stored = await DailyQuiz.create(payload);
+    console.log(`[quiz] persisted date=${stored.date} questions=${stored.questions.length}`);
+    return stored;
+  } catch (error) {
+    if (error?.code === 11000) {
+      const existing = await DailyQuiz.findOne({ date });
+      console.log(`[quiz] duplicate insert avoided date=${existing?.date || date}`);
+      return existing;
+    }
+    throw error;
+  }
 };
 
 export const cleanupDailyQuizzes = async (date = todayKey()) => {
@@ -64,13 +78,24 @@ export const cleanupDailyQuizzes = async (date = todayKey()) => {
   return DailyQuiz.deleteMany({ date: { $lt: dateBefore(date, retentionDays - 1) } });
 };
 
-export const getDailyQuiz = async () =>
-  getOrGenerateDailyContent({
+export const getDailyQuiz = async () => {
+  try {
+    const quiz = await getOrGenerateDailyContent({
     model: DailyQuiz,
     date: todayKey(),
     generate: generateAndStore,
     retentionDays: getContentRetentionDays()
-  });
+    });
+    return { date: quiz.date, questions: quiz.questions, fallback: false };
+  } catch (error) {
+    const date = todayKey();
+    const questionCount = getQuizQuestionCount();
+    const questions = await getRandomPreviousItems(DailyQuiz, date, "questions", questionCount);
+    console.error(`[quiz] generation failed date=${date} fallbackQuestions=${questions.length}:`, error);
+    if (questions.length < questionCount) throw error;
+    return { date, questions, fallback: true };
+  }
+};
 
 export const getQuizHistory = () => listRecentDailyContent(DailyQuiz, getDateKey(), getContentRetentionDays());
 

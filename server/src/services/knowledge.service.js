@@ -1,10 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { DailyKnowledge } from "../models/DailyKnowledge.js";
-import { askGemini } from "./assistant/gemini.service.js";
+import { askGeminiWithFallback } from "./assistant/gemini.service.js";
 import { getKnowledgeItemCount } from "../config/knowledge.js";
 import { getContentRetentionDays } from "../config/content.js";
-import { dateBefore, getDateKey, getOrGenerateDailyContent, listRecentDailyContent, startDailyContentScheduler } from "./daily-content.service.js";
+import { getDateKey, getOrGenerateDailyContent, getRandomPreviousItems, listRecentDailyContent, startDailyContentScheduler } from "./daily-content.service.js";
 
 const promptPath = fileURLToPath(new URL("../utils/facts-system-prompt.md", import.meta.url));
 const categories = new Set(["vocabulary", "science", "history", "geography", "arts_culture", "technology", "general_knowledge"]);
@@ -64,20 +64,31 @@ const generateAndStore = async (date) => {
   const retentionDays = getContentRetentionDays();
   const previous = await DailyKnowledge.find({ date: { $lt: date } }).sort({ date: -1 }).limit(retentionDays).lean();
   const reference = previous.map((entry) => ({ date: entry.date, items: entry.items.map(({ category, title, content }) => ({ category, title, content })) }));
-  const raw = await askGemini(`SYSTEM PROMPT\n${prompt}\n\nPREVIOUS CONTENT (reference only; avoid duplication):\n${JSON.stringify(reference)}\n\nGENERATION REQUEST\nGenerate exactly ${itemCount} fresh knowledge facts for date ${date}. Return only the required JSON.`, [], { json: true });
+  console.log(`[knowledge] calling Gemini date=${date} expectedItems=${itemCount} referenceDays=${reference.length}`);
+  const raw = await askGeminiWithFallback(`SYSTEM PROMPT\n${prompt}\n\nPREVIOUS CONTENT (reference only; avoid duplication):\n${JSON.stringify(reference)}\n\nGENERATION REQUEST\nGenerate exactly ${itemCount} fresh knowledge facts for date ${date}. Return only the required JSON.`, [], { json: true });
+  console.log(`[knowledge] Gemini returned date=${date} responseLength=${raw.length}`);
   const payload = validatePayload(parseJson(raw), date);
+  console.log(`[knowledge] validated date=${date} items=${payload.items.length}`);
 
   try {
-    return await DailyKnowledge.create(payload);
+    const stored = await DailyKnowledge.create(payload);
+    console.log(`[knowledge] persisted date=${stored.date} items=${stored.items.length}`);
+    return stored;
   } catch (error) {
-    if (error?.code === 11000) return DailyKnowledge.findOne({ date });
+    if (error?.code === 11000) {
+      const existing = await DailyKnowledge.findOne({ date });
+      console.log(`[knowledge] duplicate insert avoided date=${existing?.date || date}`);
+      return existing;
+    }
     throw error;
   }
 };
 
 const fallback = async (date) => {
-  const retentionDays = getContentRetentionDays();
-  return DailyKnowledge.findOne({ date: { $gte: dateBefore(date, retentionDays - 1), $lte: date } }).sort({ date: -1 });
+  const itemCount = getKnowledgeItemCount();
+  const items = await getRandomPreviousItems(DailyKnowledge, date, "items", itemCount);
+  if (items.length < itemCount) return null;
+  return { date, items: items.map((item, index) => ({ ...item, id: index + 1 })) };
 };
 
 export const getDailyKnowledge = async () => {
@@ -90,6 +101,7 @@ export const getDailyKnowledge = async () => {
     return { date: generated.date, items: generated.items, fallback: false };
   } catch (error) {
     const previous = await fallback(getDateKey());
+    console.error(`[knowledge] generation failed date=${getDateKey()} fallbackItems=${previous?.items.length || 0}:`, error);
     if (previous) return { date: previous.date, items: previous.items, fallback: true };
     throw error;
   }
