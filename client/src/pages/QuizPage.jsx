@@ -5,7 +5,7 @@ import { Card } from "../components/common/Card.jsx";
 
 const QUIZ_SECONDS = 15 * 60;
 const formatTime = (seconds) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
-const topicName = (topic) => topic.replaceAll(/[_-]/g, " ");
+const topicName = (topic) => String(topic || "General aptitude").replaceAll(/[_-]/g, " ");
 
 const getRelativeDateLabel = (dateKey) => {
   if (!dateKey) return "Today";
