@@ -196,7 +196,7 @@ export function TrackerPage() {
         )}
 
         {showQuiz ? (
-          <QuizPage isAuthenticated={isAuthenticated} onLogin={() => setAuthOpen(true)} />
+          <QuizPage isAuthenticated={isAuthenticated} onLogin={() => setAuthOpen(true)} onToggleHabit={actions.toggleHabit} habits={state.habits} todayKey={todayKey} />
         ) : loading ? (
           <div className="rounded-lg border border-stone-200 bg-white p-8 text-center text-sm font-semibold text-slate-500 shadow-soft dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
             Loading your tracker...

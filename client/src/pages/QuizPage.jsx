@@ -21,7 +21,7 @@ const getRelativeDateLabel = (dateKey) => {
   return dateKey;
 };
 
-export function QuizPage({ isAuthenticated, onLogin }) {
+export function QuizPage({ isAuthenticated, onLogin, onToggleHabit, habits, todayKey }) {
   const [quiz, setQuiz] = useState(null);
   const [history, setHistory] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -81,6 +81,10 @@ export function QuizPage({ isAuthenticated, onLogin }) {
         timeTakenSeconds: QUIZ_SECONDS - secondsLeft,
       });
       setResult(data);
+      const aptitudeHabit = habits?.find((habit) => habit.name?.trim().toLowerCase().includes("aptitude"));
+      if (aptitudeHabit && !aptitudeHabit.history?.[todayKey]) {
+        await onToggleHabit(aptitudeHabit.id, todayKey);
+      }
     } catch (err) {
       setError(err.message || "Your quiz could not be submitted.");
     } finally {
