@@ -62,7 +62,7 @@ export function QuizPage({ isAuthenticated, onLogin, onToggleHabit, habits, toda
   }, [selectedDate, selectedQuiz?.date]);
 
   const submit = async () => {
-    if (!selectedQuiz || selectedQuiz.fallback || submitting.current || result) return;
+    if (!selectedQuiz || submitting.current || result) return;
     if (!isAuthenticated) {
       onLogin();
       return;
@@ -72,14 +72,27 @@ export function QuizPage({ isAuthenticated, onLogin, onToggleHabit, habits, toda
     setError("");
 
     try {
-      const data = await api.submitQuiz({
-        quizDate: selectedQuiz.date,
-        answers: selectedQuiz.questions.map((_, questionIndex) => ({
-          questionIndex,
-          selectedAnswer: answers[questionIndex] || null,
-        })),
-        timeTakenSeconds: QUIZ_SECONDS - secondsLeft,
-      });
+      const submittedAnswers = selectedQuiz.questions.map((_, questionIndex) => ({
+        questionIndex,
+        selectedAnswer: answers[questionIndex] || null,
+      }));
+      const data = selectedQuiz.fallback
+        ? {
+            score: selectedQuiz.questions.filter((question, index) => submittedAnswers[index].selectedAnswer === question.correctAnswer).length,
+            total: selectedQuiz.questions.length,
+            timeTakenSeconds: QUIZ_SECONDS - secondsLeft,
+            questions: selectedQuiz.questions,
+            answers: selectedQuiz.questions.map((question, index) => ({
+              questionIndex: index,
+              selectedAnswer: submittedAnswers[index].selectedAnswer,
+              isCorrect: submittedAnswers[index].selectedAnswer === question.correctAnswer,
+            })),
+          }
+        : await api.submitQuiz({
+            quizDate: selectedQuiz.date,
+            answers: submittedAnswers,
+            timeTakenSeconds: QUIZ_SECONDS - secondsLeft,
+          });
       setResult(data);
       const aptitudeHabit = habits?.find((habit) => habit.name?.trim().toLowerCase().includes("aptitude"));
       if (aptitudeHabit && !aptitudeHabit.history?.[todayKey]) {
@@ -352,8 +365,6 @@ export function QuizPage({ isAuthenticated, onLogin, onToggleHabit, habits, toda
               Next
               <ArrowRight size={17} />
             </button>
-          ) : selectedQuiz.fallback ? (
-            <span className="text-xs font-semibold text-amber-700 dark:text-amber-300">Submission unavailable while using fallback content.</span>
           ) : (
             <button
               onClick={submit}
